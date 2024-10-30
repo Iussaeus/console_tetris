@@ -1,3 +1,6 @@
 ./.idea/
 ./x64/
 ./ConsoleA.EADB6CEA/
+
+./ConsoleApplication1.sln.DotSettings.user
+./ConsoleApplication1.vcxproj.filters
