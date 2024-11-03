@@ -1,56 +1,62 @@
 ﻿module;
 
 #include <chrono>
+#include <iostream>
 #include <random>
 
 module engine;
-import renderer;
+
+import renderer_utils;
 
 namespace engine {
-	void set_seed(size_t seed) {
-		random_engine.seed(seed);
-	}
+    engine::engine(): m_entities_(16) {}
+    engine::engine(const int size, const int width, const int height) : m_entities_(size) {}
+    engine::~engine() {}
 
-	size_t random(int min, int max) {
-		random_distribution = std::uniform_int_distribution<size_t>(min, max);
-		return random_distribution(random_engine);
-	}
+    void engine::push_block(const std::shared_ptr<block>& b, const vec2<int> position) {
+        b->m_pos = position;
+        m_entities_.push_back(b);
+    }
 
-	size_t generate_id() {
-		auto now = std::chrono::high_resolution_clock::now();
-		auto milli = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-		return random(0, 999999) + milli;
-	}
+    void engine::remove_block(const std::shared_ptr<block>& b) {
+        for (auto it = m_entities_.begin(); it != m_entities_.end(); ++it) {
+            if (b == *it) {
+                it = m_entities_.erase(it);
+                return;
+            }
+        }
+    }
 
-	engine::engine(): entities_(16), block_buffer_(16, 48) {
-	}
+    // warn it should be limited to a refresh rate
+    void engine::update() const {
+        for (const auto& block : m_entities_) {
+            if (block->on_update) {
+                block->on_update();
+            }
+        }
+    }
 
-	engine::engine(const int size, const int width, const int height) : entities_(size), block_buffer_(width, height) {
-	}
+    void engine::print_data() const {
+        std::cout << "m_entities_: ";
 
-	engine::~engine() {
-	}
+        for (const auto& block : m_entities_) {
+            block->print_data(false);
+        }
 
-	// TODO: add to buffer
-	void engine::add_block(std::shared_ptr<block>& b, position position) {
-		b.get()->position = position;
-		entities_.push_back(b);
-	}
+        std::cout << std::endl;
+    }
 
-	// TODO: remove from buffer
-	void engine::remove_block(std::shared_ptr<block>& b) {
-		for (auto it = entities_.begin(); it != entities_.end(); ++it) {
-			if (b == *it) {
-				it = entities_.erase(it);
-				return;
-			}
-		}
-	}
+    const std::vector<std::shared_ptr<block>>& engine::get_blocks() const {
+        return m_entities_;
+    }
 
-	block::block() : position(0, 0), type(block_type::nothing), id(0), color(renderer::colors::red) {
-	}
-
-	block::block(block_type type, const std::wstring& color): position(0, 0), type(type), id(generate_id()),
-	                                                          color(color) {
-	}
+    // warn may return nullptr
+    std::shared_ptr<block> engine::get_block_(size_t id) const {
+        for (const auto& block : m_entities_) {
+            if (id == block->m_id) {
+                return block;
+            }
+        }
+        return nullptr;
+    }
 }

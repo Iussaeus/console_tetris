@@ -1,6 +1,14 @@
-./.idea/
-./x64/
-./ConsoleA.EADB6CEA/
+.idea/
+x64/
+ConsoleA.EADB6CEA/
 
-./ConsoleApplication1.sln.DotSettings.user
-./ConsoleApplication1.vcxproj.filters
+ConsoleApplication1.sln.DotSettings.user
+ConsoleApplication1.vcxproj.filters
+
+.cache/
+.clang-tidy
+.clangd
+.idea/
+
+cmake-build-debug/
+compile_commands.json
