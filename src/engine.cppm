@@ -7,31 +7,33 @@ export module engine;
 
 import buffer;
 import block;
+import renderer;
+import input;
+import engine_utils;
 
 export namespace engine {
     // TODO: detect collision
-    // TODO: store game state(entities, buffer of locations of the blocksl
-    // TODO: input handling
-    // TODO: refresh rate
-    // TODO: multithreading
+    // TODO: game loop
 
-    struct engine final {
+    // TODO: refresh rate
+
+    class engine final {
     private:
-        std::vector<std::shared_ptr<block>> m_entities_;
+        entity_buffer entities_;
+        renderer::screen screen_;
+        input input_;
 
     public:
         engine();
         engine(int size, int width, int height);
         ~engine();
 
-        void push_block(const std::shared_ptr<block>& b, vec2<int> position);
-        void remove_block(const std::shared_ptr<block>& b);
+        [[nodiscard]] const block_buffer& get_blocks() const;
+        [[nodiscard]] block_ptr get_block_(size_t id) const;
+
+        void push_block(const block_ptr& b, vec2<int> position);
+        void remove_block(const block_ptr& b);
         void print_data() const;
-
-        const std::vector<std::shared_ptr<block>>& get_blocks() const;
-
-    private:
         void update() const;
-        std::shared_ptr<block> get_block_(size_t id) const;
     };
 }

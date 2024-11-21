@@ -1,18 +1,17 @@
 ﻿module;
 
-#include <memory>
 #include <string>
-#include <vector>
 
 export module renderer;
 
 import buffer;
 import block;
+import engine_utils;
 
 namespace renderer {
     export struct screen {
     private:
-        buffer::buffer<std::wstring> m_buffer_;
+        buffer::buffer<std::wstring> buffer_;
 
     public:
         screen();
@@ -23,9 +22,8 @@ namespace renderer {
         void draw();
         static void clear();
 
-        void update_buffer(const std::vector<std::shared_ptr<engine::block>>& blocks);
-        void add_block_to_buffer(const engine::block& b);
-
-    private:
+        void update_buffer(const engine::block_buffer& blocks);
+        void add_block_to_buffer(const engine::block_ptr& b);
+        [[nodiscard]] buffer::buffer<std::wstring>& get_buffer();
     };
 }
