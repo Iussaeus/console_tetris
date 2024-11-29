@@ -1,6 +1,7 @@
 module;
 
 #include <chrono>
+#include <map>
 #include <csignal>
 #include <iostream>
 #include <string>
@@ -10,108 +11,92 @@ module;
 
 module input;
 
+import utils;
 
 namespace engine {
-    using namespace std::chrono_literals;
-
     volatile sig_atomic_t stop = 0;
 
-    input::input(): buffer_size_(15) {
-        this->capture_input();
+    input::input(): buffer_size_(64) {
+        start_capture_();
+
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 1000;
     }
 
-    void input::capture_input() {
-        auto next_timestamp = std::chrono::steady_clock::now().time_since_epoch() + refresh_rate_;
-        termios oldt{}, newt{};
+    input::~input() {
+        stop_capture_();
+    }
 
-        tcgetattr(STDIN_FILENO, &oldt);
-        newt = oldt;
+    const std::map<std::string, std::string>& input::action_pairs() {
+        return action_pairs_;
+    }
 
-        newt.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    void input::capture_one_input() {
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
 
-        std::cout << "Type characters (press 'q' to quit):" << std::endl;
+        if (select(STDIN_FILENO + 1, &readfds, nullptr, nullptr, &timeout) > 0) {
+            char buffer[8];
+            ssize_t bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
 
-        while (!stop) {
-            const char ch = getchar();
-            const auto now = std::chrono::steady_clock::now().time_since_epoch();
-
-            // Capture arrows
-            auto c = (int)ch;
-
-            if (c == 27) {
-                // ESC
-                getchar(); // Skip the '['
-                c = getchar(); // Get the actual arrow key
-                switch (c) {
-                case 'A':
-                    std::cout << "Up arrow pressed" << std::endl;
-                    break;
-                case 'B':
-                    std::cout << "Down arrow pressed" << std::endl;
-                    break;
-                case 'C':
-                    std::cout << "Right arrow pressed" << std::endl;
-                    break;
-                case 'D':
-                    std::cout << "Left arrow pressed" << std::endl;
-                    break;
-                }
+            if (bytesRead > 0) {
+                buffer[bytesRead] = '\0';
+                buffer_.emplace_back(buffer);
             }
-
-            if (ch == 'q') {
-                break;
-            }
-            if (now >= next_timestamp && buffer_.size() == buffer_size_) {
-                buffer_.clear();
-                std::cout << "Cleared" << "\n";
-                next_timestamp = std::chrono::steady_clock::now().time_since_epoch() + refresh_rate_;
-                continue;
-            }
-            buffer_.push_back(ch);
-            std::this_thread::sleep_for(100ms);
         }
+        else buffer_.emplace_back("empty");
 
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Restore old settings
+        clear_buffer_();
+    }
 
-        std::cout << "Final input: ";
+    void input::start_capture_() {
+        tcgetattr(STDIN_FILENO, &oldt_);
+        newt_ = oldt_;
+
+        newt_.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt_);
+    }
+
+    void input::stop_capture_() const {
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt_);
+    }
+
+    void input::print_buffer_() const {
         for (const auto& elem : buffer_) {
+            std::cout << "Final input: ";
             std::cout << elem;
         }
         std::cout << "\n";
     }
 
-    void input::clear_buffer() {
+    void input::clear_buffer_() {
         if (buffer_size_ == buffer_.size()) {
             buffer_.clear();
         }
     }
 
-    bool input::is_button_pressed_(char b) const {
-        for (const auto& raw_char : buffer_) {
-            if (raw_char == b) return true;
+    void input::add_action_pair(const std::string& a, const std::string& b) {
+        if (!action_pairs_.contains(a)) {
+            action_pairs_[a] = b;
         }
-        return false;
     }
 
-    void input::add_action_pair(const std::string& a, char b) {}
+    bool input::is_button_just_pressed(const std::string& b) const {
+        if (buffer_.empty()) return false;
+
+        const auto button = *buffer_.rbegin();
+
+        return button == b;
+    }
 
     bool input::is_action_just_pressed(const std::string& a) const {
-        for (const auto& [action, button] : action_pairs_) {
-            if (action == a) return is_button_pressed_(button);
-        }
-        return false;
-    }
+        if (action_pairs_.empty()) return false;
 
-    bool input::is_button_just_pressed(char button) const {
-        for (const auto& raw_char : buffer_) {
-            if (raw_char == button) return true;
-        }
-        return false;
-    }
+        const auto& last_input = *buffer_.rbegin();
+        const auto& desired_input = action_pairs_.find(a);
 
-    input& input::instance() {
-        static input input;
-        return input;
+        if (desired_input->second == last_input) return is_button_just_pressed(desired_input->second);
+
+        return false;
     }
 };

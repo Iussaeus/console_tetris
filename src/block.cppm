@@ -9,6 +9,7 @@ export module block;
 
 import buffer;
 import engine_utils;
+import renderer_utils;
 
 export namespace engine {
     enum struct block_type {
@@ -24,15 +25,16 @@ export namespace engine {
 
     class block : public entity {
     public:
-        block();
-        block(block_type type, const std::wstring& color);;
+        block(block_type type = block_type::nothing, const std::wstring& color = colors::red);
 
         vec2<int> position;
         const block_type type;
         const size_t id;
         std::wstring color;
+        bool is_enabled;
         buffer::buffer<int, 4, 4> local_grid;
         std::array<vec2<int>, 4> tile_offsets;
+        std::function<void(float)> update = [&](float) {};
 
     public:
         void on_update(float delta) override;
@@ -45,9 +47,8 @@ export namespace engine {
         void move(vec2<int> p);
     };
 
-    // using block_ptr = std::shared_ptr<block>;
-    typedef std::shared_ptr<block> block_ptr;
-
+    using block_ptr = std::shared_ptr<block>;
     using block_buffer = std::vector<std::shared_ptr<block>>;
-    // typedef std::vector<std::shared_ptr<block>> block_buffer;
+
+    block_ptr make_block(block_type type = block_type::nothing, renderer::color color = colors::red);
 }

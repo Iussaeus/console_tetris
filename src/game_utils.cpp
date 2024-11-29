@@ -15,7 +15,7 @@ namespace utils {
         for (auto blocks = make_block_buffer(); const auto& block : blocks) {
             screen.add_block_to_buffer(block);
             screen.draw();
-            screen.init(renderer::colors::black + L"O");
+            screen.init(colors::black + L"O");
             std::wcout << std::endl;
         }
     }
@@ -28,30 +28,30 @@ namespace utils {
     void test_block_rotation(renderer::screen& screen, const engine::block_ptr& block) {
         block->position = engine::vec2(0, 0);
 
-        screen.init(renderer::colors::black + L"O");
+        screen.init(colors::black + L"O");
         screen.add_block_to_buffer(block);
         screen.draw();
         std::wcout << std::endl;
 
-        screen.init(renderer::colors::black + L"O");
+        screen.init(colors::black + L"O");
         block->rotate();
         screen.add_block_to_buffer(block);
         screen.draw();
         std::wcout << std::endl;
 
-        screen.init(renderer::colors::black + L"O");
+        screen.init(colors::black + L"O");
         block->rotate();
         screen.add_block_to_buffer(block);
         screen.draw();
         std::wcout << std::endl;
 
-        screen.init(renderer::colors::black + L"O");
+        screen.init(colors::black + L"O");
         block->rotate();
         screen.add_block_to_buffer(block);
         screen.draw();
         std::wcout << std::endl;
 
-        screen.init(renderer::colors::black + L"O");
+        screen.init(colors::black + L"O");
         block->rotate();
         screen.add_block_to_buffer(block);
         screen.draw();

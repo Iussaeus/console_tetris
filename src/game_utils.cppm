@@ -20,13 +20,13 @@ export namespace utils {
             return {std::make_shared<engine::block>(std::forward<Args>(blocks))...};
         else
             return {
-                std::make_shared<engine::block>(engine::block_type::O_block, renderer::colors::red),
-                std::make_shared<engine::block>(engine::block_type::L_block, renderer::colors::red),
-                std::make_shared<engine::block>(engine::block_type::J_block, renderer::colors::red),
-                std::make_shared<engine::block>(engine::block_type::S_block, renderer::colors::red),
-                std::make_shared<engine::block>(engine::block_type::Z_block, renderer::colors::red),
-                std::make_shared<engine::block>(engine::block_type::I_block, renderer::colors::red),
-                std::make_shared<engine::block>(engine::block_type::T_block, renderer::colors::red)
+                std::make_shared<engine::block>(engine::block_type::O_block, colors::red),
+                std::make_shared<engine::block>(engine::block_type::L_block, colors::red),
+                std::make_shared<engine::block>(engine::block_type::J_block, colors::red),
+                std::make_shared<engine::block>(engine::block_type::S_block, colors::red),
+                std::make_shared<engine::block>(engine::block_type::Z_block, colors::red),
+                std::make_shared<engine::block>(engine::block_type::I_block, colors::red),
+                std::make_shared<engine::block>(engine::block_type::T_block, colors::red)
             };
     }
 };

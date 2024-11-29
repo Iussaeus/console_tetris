@@ -3,7 +3,7 @@ module;
 #include <iostream>
 #include <string>
 
-export module utils_t;
+export module assert;
 
 export namespace assert {
     void print_file_data(int line = 0, const std::string& function = "", const std::string& file = "");

@@ -8,8 +8,8 @@ import buffer;
 import block;
 import engine_utils;
 
-namespace renderer {
-    export struct screen {
+export namespace renderer {
+    struct screen {
     private:
         buffer::buffer<std::wstring> buffer_;
 

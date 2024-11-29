@@ -2,19 +2,17 @@ module;
 
 #include <format>
 #include <iostream>
+#include <memory>
 #include <string>
 
 module block;
 
 import random;
+import renderer_utils;
 
 namespace engine {
-    block::block() : position(0, 1), type(block_type::nothing), id(engine::generate_id()), tile_offsets() {}
-
-    block::block(const block_type type, const std::wstring& color): position(0, 1), type(type),
-                                                                    id(engine::generate_id()),
-                                                                    color(color), tile_offsets() {
-        // note: sort of pivot
+    block::block(const block_type type, const std::wstring& color):
+        position(0, 1), type(type), id(generate_id()), color(color) {
         local_grid[0][1] = 1;
         tile_offsets[0] = vec2(0, 1);
 
@@ -159,5 +157,9 @@ namespace engine {
 
     void block::move(vec2<int> p) {
         position = p;
+    }
+
+    block_ptr make_block(block_type type, renderer::color color) {
+        return std::make_shared<block>(block(type, color));
     }
 }

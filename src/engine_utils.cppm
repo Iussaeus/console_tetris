@@ -12,8 +12,8 @@ export namespace engine {
     class entity {
     public:
         virtual ~entity() = default;
-        virtual void init() = 0;
-        virtual void on_update(float delta) = 0;
+        virtual void init() {};
+        virtual void on_update(float delta) {};
     };
 
     template <typename T>
@@ -28,12 +28,30 @@ export namespace engine {
         vec2(): x(T()), y(T()) {}
         vec2(T x_pos, T y_pos): x(x_pos), y(y_pos) {}
 
+        vec2& operator++(int) {
+            x++;
+            y++;
+            return *this;
+        }
+
+        vec2& operator--(int) {
+            x++;
+            y++;
+            return *this;
+        }
+
         vec2 operator+(const vec2& other) const {
-            return vec2(this->x + other.x, this->y + other.y);
+            auto temp = *this;
+            temp.x += other.x;
+            temp.y += other.y;
+            return temp;
         }
 
         vec2 operator-(const vec2& other) const {
-            return vec2(this->x - other.x, this->y - other.y);
+            auto temp = *this;
+            temp.x -= other.x;
+            temp.y -= other.y;
+            return temp;
         }
 
         bool operator==(const vec2& other) const {
@@ -44,7 +62,7 @@ export namespace engine {
             return this->x != other.x && this->y != other.y;
         }
 
-        inline friend std::ostream& operator<<(std::ostream& os, const engine::vec2<T>& vec) {
+        inline friend std::ostream& operator<<(std::ostream& os, const vec2<T>& vec) {
             return os << std::string("(") << vec.x << ", " << vec.y << ")";
         };
     };
@@ -54,6 +72,4 @@ export namespace engine {
 
     const vec2 vec2i_one(1, 1);
     const vec2 vec2f_one(1.0f, 1.0f);
-
-    using entity_buffer = std::vector<std::shared_ptr<entity>>;
 }
