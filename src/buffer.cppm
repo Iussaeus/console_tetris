@@ -6,7 +6,7 @@
 export module buffer;
 
 export namespace buffer {
-    template <typename T, int W = 16, int H = 48>
+    template <typename T, int = 16, int = 16>
     class buffer {
     public:
         buffer();
@@ -27,8 +27,8 @@ export namespace buffer {
         // TODO: implement it with sfinae
         // void print_data();
 
-        int get_width() const;
-        int get_height() const;
+        int width() const;
+        int height() const;
         void print_data() const;
 
     private:
@@ -77,12 +77,12 @@ export namespace buffer {
     }
 
     template <typename T, int W, int H>
-    int buffer<T, W, H>::get_width() const {
+    int buffer<T, W, H>::width() const {
         return width_;
     }
 
     template <typename T, int W, int H>
-    int buffer<T, W, H>::get_height() const {
+    int buffer<T, W, H>::height() const {
         return height_;
     }
 

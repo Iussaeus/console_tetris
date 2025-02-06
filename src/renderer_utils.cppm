@@ -1,4 +1,5 @@
 module;
+#include <array>
 #include <string>
 export module renderer_utils;
 
@@ -36,4 +37,6 @@ export namespace colors {
     const renderer::color white_background = L"\033[47m";
 
     const renderer::color reset = L"\033[0m";
+
+    std::array array = {black, red, green, yellow, blue, magenta, cyan, white};
 }

@@ -21,6 +21,7 @@ export namespace engine {
         S_block,
         Z_block,
         J_block,
+        count
     };
 
     class block : public entity {
@@ -34,17 +35,19 @@ export namespace engine {
         bool is_enabled;
         buffer::buffer<int, 4, 4> local_grid;
         std::array<vec2<int>, 4> tile_offsets;
-        std::function<void(float)> update = [&](float) {};
+        std::function<void(std::shared_ptr<block>& b, float)> update = [&](std::shared_ptr<block>&, float) {};
 
     public:
         void on_update(float delta) override;
         void init() override;
 
         void remove_tile(vec2<int> p);
-        void update_offsets();
         void print_data(bool with_local_grid = true) const;
         void rotate();
-        void move(vec2<int> p);
+        vec2<int> lowest_point() const;
+
+    private:
+        void update_offsets();
     };
 
     using block_ptr = std::shared_ptr<block>;

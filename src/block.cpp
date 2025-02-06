@@ -94,22 +94,18 @@ namespace engine {
         }
     }
 
-    void block::on_update(float delta) {
-        std::wcout << "text" << delta << "\n";
-    }
+    void block::on_update(float delta) {}
+    void block::init() {}
 
-    void block::init() {
-        std::wcout << "init_text" << "\n";
-    }
-
+    // todo: make it real
     void block::remove_tile(const vec2<int> p) {
         local_grid[p.x][p.y] = 0;
     }
 
-    void block::update_offsets() {
+    auto block::update_offsets() -> void {
         auto offset_idx = 0;
-        for (int i = 0; i < local_grid.get_height(); i++) {
-            for (int j = 0; j < local_grid.get_width(); j++) {
+        for (int i = 0; i < local_grid.height(); i++) {
+            for (int j = 0; j < local_grid.width(); j++) {
                 if (local_grid[i][j] == 1) {
                     tile_offsets[offset_idx] = vec2(i, j);
                     offset_idx++;
@@ -119,44 +115,55 @@ namespace engine {
     }
 
     void block::print_data(const bool with_local_grid) const {
-        std::cout << "id: " << id << " m_pos: " << position << std::endl;
+        std::wcout << "id: " << id << " m_pos: " << position << std::endl;
 
-        std::cout << "tile_offsets:";
+        std::wcout << "tile_offsets:";
         for (int i = 0; i < tile_offsets.size(); i++) {
-            std::cout << tile_offsets[i] << " ";
+            std::wcout << tile_offsets[i] << " ";
         }
 
+        std::wcout << std::endl;
+
         if (with_local_grid) {
-            for (int i = 0; i < local_grid.get_height(); i++) {
-                for (int j = 0; j < local_grid.get_width(); j++) {
+            for (int i = 0; i < local_grid.height(); i++) {
+                for (int j = 0; j < local_grid.width(); j++) {
                     std::wcout << local_grid[i][j];
                 }
+                std::wcout << std::endl;
             }
         }
 
-        std::cout << std::endl;
+        std::wcout << std::endl;
     }
 
     void block::rotate() {
-        for (int i = 0; i < local_grid.get_height(); i++) {
-            for (int j = 0; j < local_grid.get_width(); j++) {
+        for (int i = 0; i < local_grid.height(); i++) {
+            for (int j = 0; j < local_grid.width(); j++) {
                 if (i < j) {
                     std::swap(local_grid[i][j], local_grid[j][i]);
                 }
             }
         }
 
-        for (int i = 0; i < local_grid.get_height(); i++) {
-            for (int j = 0; j < local_grid.get_width() / 2; j++) {
-                std::swap(local_grid[i][j], local_grid[i][local_grid.get_width() - j - 1]);
+        for (int i = 0; i < local_grid.height(); i++) {
+            for (int j = 0; j < local_grid.width() / 2; j++) {
+                std::swap(local_grid[i][j], local_grid[i][local_grid.width() - j - 1]);
             }
         }
 
         update_offsets();
     }
 
-    void block::move(vec2<int> p) {
-        position = p;
+    // get the lowest point in global space, returns empty vec if none found
+    vec2<int> block::lowest_point() const {
+        for (int i = local_grid.height() - 1; i >= 0; --i) {
+            for (int j = local_grid.width() - 1; j >= 0; --j) {
+                if (local_grid[i][j] == 1) {
+                    return vec2{i, j} + position;
+                }
+            }
+        }
+        return vec2{0, 0};
     }
 
     block_ptr make_block(block_type type, renderer::color color) {
