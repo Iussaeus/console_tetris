@@ -10,7 +10,6 @@
 module engine;
 
 import renderer_utils;
-import utils;
 
 namespace engine {
     engine::engine() {
@@ -33,8 +32,6 @@ namespace engine {
     }
 
     engine::~engine() {}
-
-    void engine::init() {}
 
     void engine::push_block(block_ptr b) {
         if (b->init) b->init(b);

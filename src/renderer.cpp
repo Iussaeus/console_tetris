@@ -6,7 +6,6 @@
 
 module renderer;
 
-import utils;
 import buffer;
 import block;
 import renderer_utils;
@@ -40,13 +39,14 @@ namespace renderer {
                 std::wcout << buffer_[i][j];
             }
             if (rbegin != rend) {
-                print::space("", *rbegin);
+                std::wcout << " " << *rbegin;
                 ++rbegin;
             }
             else {
-                print::line();
+                std::wcout << "\n";
             }
         }
+        std::flush(std::wcout);
     }
 
     void screen::add_debug_info(const std::wstring& printable) {
@@ -65,6 +65,7 @@ namespace renderer {
 
     void screen::clear() {
         std::wcout << L"\033[2J\033[1;1H";
+        std::flush(std::wcout);
     }
 
     void screen::update_buffer(const engine::block_buffer& blocks) {
@@ -76,7 +77,7 @@ namespace renderer {
     void screen::add_block_to_buffer(const engine::block_ptr& b) {
         for (int i = 0; i < b->local_grid.height(); i++) {
             auto global_pos = b->position + engine::vec2(b->tile_offsets[i]);
-            if ((global_pos.x >= 0 && global_pos.y >= 0) && (global_pos.x < buffer_.height() &&
+            if (global_pos.x >= 0 && global_pos.y >= 0 && (global_pos.x < buffer_.height() &&
                 global_pos.y < buffer_.width())) {
                 buffer_[global_pos.x][global_pos.y] = b->color + L'X' + colors::reset;
             }

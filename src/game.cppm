@@ -10,9 +10,15 @@ import block;
 import renderer;
 import engine;
 
-export namespace game {
-    size_t total_score;
-    size_t current_score;
+namespace game {
+    static bool running = true;
 
-    void run();
+    auto make_controllable_func(engine::engine& engine);
+    engine::block_ptr make_random_block(engine::engine& engine);
+    engine::block_ptr make_controllable_block(engine::engine& engine);
+
+    void add_input_actions(engine::engine& engine);
+
+    void handle_SIGINT(int signal);
+    export void run();
 }

@@ -24,12 +24,11 @@ export namespace renderer {
         void init(const std::wstring&& c = L" ");
         void draw();
         void add_debug_info(const std::wstring& printable);
-        [[nodiscard]] int width() const;
-        [[nodiscard]] int height() const;
+        int width() const;
+        int height() const;
         static void clear();
 
         void update_buffer(const engine::block_buffer& blocks);
         void add_block_to_buffer(const engine::block_ptr& b);
-        [[nodiscard]] buffer::buffer<std::wstring>& buffer();
     };
 }

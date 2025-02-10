@@ -11,8 +11,6 @@ module;
 
 module input;
 
-import utils;
-
 namespace engine {
     volatile sig_atomic_t stop = 0;
 

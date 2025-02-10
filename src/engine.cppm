@@ -40,7 +40,6 @@ export namespace engine {
         void print_data() const;
 
         void update();
-        void init();
         void render();
 
         block_buffer& blocks();
