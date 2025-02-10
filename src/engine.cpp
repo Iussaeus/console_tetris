@@ -17,7 +17,6 @@ namespace engine {
         screen_.clear();
         screen_.init(L"X");
         blocks_.reserve(16);
-        previous_time_ = std::chrono::high_resolution_clock::now();
     }
 
     engine::engine(int frames) {
@@ -25,14 +24,12 @@ namespace engine {
         screen_.init(L"X");
         blocks_.reserve(16);
         interval = 1000 / frames;
-        previous_time_ = std::chrono::high_resolution_clock::now();
     }
 
     engine::engine(const int size, const int width, const int height) : screen_(width, height) {
         screen_.clear();
         screen_.init(L"X");
         blocks_.reserve(size);
-        previous_time_ = std::chrono::high_resolution_clock::now();
     }
 
     engine::~engine() {}
@@ -45,7 +42,7 @@ namespace engine {
         blocks_.push_back(std::move(b));
     }
 
-    bool engine::are_blocks_colliding(const block_ptr& b1, const block_ptr& b2) {
+    bool engine::are_blocks_colliding_(const block_ptr& b1, const block_ptr& b2) {
         if (b1 == b2) return false;
 
         const auto& pos1 = b1->position;
@@ -69,6 +66,21 @@ namespace engine {
         return false;
     }
 
+    bool engine::will_block_collide(const block_ptr& b, vec2<int> pos) {
+        if (blocks_.size() == 1 || collisions_[b].size() == 0) return false;
+        auto prev_pos = b->position;
+        auto would_collide = false;
+
+        b->position = pos;
+        update_collisions_();
+        if (collisions_[b].size() >= 1) would_collide = true;
+
+        b->position = prev_pos;
+        update_collisions_();
+
+        return would_collide;
+    }
+
     void engine::update_collisions_() {
         if (blocks_.size() == 1) return;
 
@@ -76,7 +88,7 @@ namespace engine {
 
         for (const auto& b1 : blocks_) {
             for (const auto& b2 : blocks_) {
-                if (are_blocks_colliding(b1, b2)) collisions_[b1].push_back(b2);
+                if (are_blocks_colliding_(b1, b2)) collisions_[b1].push_back(b2);
             }
         }
     }
@@ -100,11 +112,11 @@ namespace engine {
         input_.capture_one_input();
 
         for (auto& block : blocks_) {
-            update_collisions_();
             if (block) {
                 if (block->update)
                     block->update(block);
             }
+            update_collisions_();
         }
 
         render();
@@ -118,14 +130,15 @@ namespace engine {
         }
     }
 
-    // todo: render
     void engine::render() {
         screen_.clear();
         screen_.init(colors::blue + L"O");
-
         screen_.update_buffer(blocks_);
-
         screen_.draw();
+    }
+
+    block_buffer& engine::blocks() {
+        return blocks_;
     }
 
     input& engine::input() {
@@ -146,19 +159,5 @@ namespace engine {
         }
 
         std::cout << std::endl;
-    }
-
-    const block_buffer& engine::blocks() const {
-        return blocks_;
-    }
-
-    /// @return block if found, nullptr if not
-    block_ptr engine::get_block_(const size_t id) const {
-        for (const auto& b : blocks_) {
-            if (b->id == id) {
-                return b;
-            }
-        }
-        return nullptr;
     }
 }

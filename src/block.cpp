@@ -12,7 +12,7 @@ import renderer_utils;
 
 namespace engine {
     block::block(const block_type type, const std::wstring& color):
-        position(0, 1), type(type), id(generate_id()), color(color) {
+        position(0, 1), type(type), color(color) {
         local_grid[0][1] = 1;
         tile_offsets[0] = vec2(0, 1);
 
@@ -93,6 +93,7 @@ namespace engine {
             break;
         }
     }
+
     // todo: make it real
     void block::remove_tile(const vec2<int> p) {
         local_grid[p.x][p.y] = 0;
@@ -111,7 +112,7 @@ namespace engine {
     }
 
     void block::print_data(const bool with_local_grid) const {
-        std::wcout << "id: " << id << " m_pos: " << position << std::endl;
+        std::wcout << "type: " << type << " pos: " << position << std::endl;
 
         std::wcout << "tile_offsets:";
         for (int i = 0; i < tile_offsets.size(); i++) {
@@ -132,6 +133,24 @@ namespace engine {
         std::wcout << std::endl;
     }
 
+    void block::rotate_reverse() {
+        for (int i = 0; i < local_grid.height(); i++) {
+            for (int j = 0; j < local_grid.width(); j++) {
+                if (j < i) {
+                    std::swap(local_grid[j][i], local_grid[i][j]);
+                }
+            }
+        }
+
+        for (int i = 0; i < local_grid.height(); i++) {
+            for (int j = 0; j < local_grid.width() / 2; j++) {
+                std::swap(local_grid[j][i], local_grid[local_grid.width() - j - 1][i]);
+            }
+        }
+
+        update_offsets();
+    }
+
     void block::rotate() {
         for (int i = 0; i < local_grid.height(); i++) {
             for (int j = 0; j < local_grid.width(); j++) {
@@ -150,7 +169,6 @@ namespace engine {
         update_offsets();
     }
 
-    // get the lowest point in global space, returns empty vec if none found
     vec2<int> block::lowest_point() const {
         for (int i = local_grid.height() - 1; i >= 0; --i) {
             for (int j = local_grid.width() - 1; j >= 0; --j) {
@@ -160,6 +178,30 @@ namespace engine {
             }
         }
         return vec2{0, 0};
+    }
+
+    vec2<int> block::leftest_point() const {
+        auto rightest = vec2{0, 0};
+        for (int i = local_grid.height() - 1; i >= 0; --i) {
+            for (int j = local_grid.width() - 1; j >= 0; --j) {
+                if (local_grid[i][j] == 1 && i <= rightest.x) {
+                    rightest = vec2{i, j} + position;
+                }
+            }
+        }
+        return rightest;
+    }
+
+    vec2<int> block::rightest_point() const {
+        auto rightest = vec2{0, 0};
+        for (int i = local_grid.height() - 1; i >= 0; --i) {
+            for (int j = local_grid.width() - 1; j >= 0; --j) {
+                if (local_grid[i][j] == 1 && j >= rightest.y) {
+                    rightest = vec2{i, j};
+                }
+            }
+        }
+        return rightest + position;
     }
 
     block_ptr make_block(block_type type, renderer::color color) {

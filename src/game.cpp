@@ -23,28 +23,35 @@ namespace game {
     auto& input = engine.input();
     auto& screen = engine.screen();
 
+    bool running = true;
 
     int count = 0;
     int fall_delay = 10;
     auto controllable_func = [](const engine::block_ptr& b) {
+        auto& p = b->position;
+
         if (++count >= fall_delay) {
-            b->position.x++;
-            if (engine.is_block_colliding(b)) b->position.x--;
+            p.x++;
+            if (engine.is_block_colliding(b)) p.x--;
         }
         count %= fall_delay;
 
-        if (input.is_action_just_pressed("down_arrow")) {
-            b->position.x++;
-            if (engine.is_block_colliding(b)) b->position.x--;
+        if (input.is_action_just_pressed("down_arrow") &&
+            !engine.will_block_collide(b, p.with_x(p.x + 2))) {
+            p.x++;
         }
-        if (input.is_action_just_pressed("right_arrow") && b->position.y + 4 < screen.width()) {
-            b->position.y++;
+        if (input.is_action_just_pressed("right_arrow") && b->rightest_point().y + 1 <= screen.width() - 1 &&
+            !engine.will_block_collide(b, p.with_y(p.y + 2))) {
+            p.y++;
+            if (engine.is_block_colliding(b)) p.y--;
         }
-        if (input.is_action_just_pressed("left_arrow") && b->position.y - 2 > 0) {
-            b->position.y--;
+        if (input.is_action_just_pressed("left_arrow") && b->leftest_point().y - 1 > 0 &&
+            !engine.will_block_collide(b, p.with_y(p.y - 2))) {
+            p.y--;
         }
         if (input.is_action_just_pressed("rotate")) {
             b->rotate();
+            if (engine.is_block_colliding(b)) b->rotate_reverse();
         }
 
         if (engine.is_block_colliding(b)) {
@@ -54,20 +61,10 @@ namespace game {
         if (b->lowest_point().x >= screen.height() - 1) {
             b->update = nullptr;
         }
-        if (engine.is_block_colliding(b)) {
-            const auto& pos = b->position;
-            const auto& to = b->tile_offsets;
-            engine.debug("b", pos, b->type, pos + to[0], pos + to[1], pos + to[2], pos + to[3], b->lowest_point());
-            engine.print_collisions(b);
-        }
     };
 
-    bool running = true;
-
     auto handle_SIGINT(int signal) -> void {
-        if (signal == SIGINT) {
-            running = false;
-        }
+        running = false;
     }
 
     auto make_random_block() -> engine::block_ptr {
@@ -100,22 +97,19 @@ namespace game {
 
         add_input_actions();
 
-        auto block = make_controllable_block();
+        auto b = make_controllable_block();
+        auto& p = b->position;
         constexpr auto max_int = std::numeric_limits<int>::max();
         auto last_pos = engine::vec2{max_int, max_int};
 
         while (running) {
-            if (block->position != last_pos) {
-                engine.debug(block->position, block->lowest_point(), block->type,
-                             engine.is_block_colliding(block) ? "true" : "false");
+            if (p != last_pos) {
+                // engine.debug("p:", p, "lp:", b->lowest_point(), "rp:", b->rightest_point(), "lfp:", b->leftest_point(),
+                //              b->type);
             }
-            if (!block->update) {
-                block = make_controllable_block();
-                // for (const auto& b : engine.blocks()) {
-                //     engine.debug(b->id);
-                // }
+            if (!b->update) {
+                b = make_controllable_block();
             }
-            last_pos = block->position;
             engine.update();
         }
     }

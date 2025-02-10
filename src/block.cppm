@@ -56,9 +56,7 @@ export namespace engine {
 
         vec2<int> position;
         const block_type type;
-        const size_t id;
         std::wstring color;
-        bool is_enabled;
         buffer::buffer<int, 4, 4> local_grid;
         std::array<vec2<int>, 4> tile_offsets;
         std::function<void(std::shared_ptr<block>& b)> update = nullptr;
@@ -68,7 +66,10 @@ export namespace engine {
         void remove_tile(vec2<int> p);
         void print_data(bool with_local_grid = true) const;
         void rotate();
+        void rotate_reverse();
         vec2<int> lowest_point() const;
+        vec2<int> rightest_point() const;
+        vec2<int> leftest_point() const;
 
     private:
         void update_offsets();

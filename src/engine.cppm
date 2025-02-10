@@ -23,7 +23,6 @@ export namespace engine {
         std::map<block_ptr, std::list<block_ptr>> collisions_ = {};
 
         int interval = 1000 / 30;
-        std::chrono::time_point<std::chrono::high_resolution_clock> previous_time_ = {};
 
     public:
         engine();
@@ -31,22 +30,25 @@ export namespace engine {
         engine(int size, int width, int height);
         ~engine();
 
-        [[nodiscard]] const block_buffer& blocks() const;
-        [[nodiscard]] block_ptr get_block_(size_t id) const;
-
-        void print_collisions(const block_ptr& b);
 
         void push_block(block_ptr b);
-        bool are_blocks_colliding(const block_ptr& b1, const block_ptr& b2);
-        bool is_block_colliding(const block_ptr& b);
         void remove_block(const block_ptr& b);
+        bool is_block_colliding(const block_ptr& b);
+        bool will_block_collide(const block_ptr& b, vec2<int> pos);
+
+        void print_collisions(const block_ptr& b);
         void print_data() const;
+
         void update();
         void init();
         void render();
 
+        block_buffer& blocks();
         input& input();
         renderer::screen& screen();
+
+    private:
+        bool are_blocks_colliding_(const block_ptr& b1, const block_ptr& b2);
 
     private:
         template <typename T>
