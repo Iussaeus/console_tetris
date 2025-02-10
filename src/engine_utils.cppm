@@ -8,12 +8,6 @@ module;
 export module engine_utils;
 
 export namespace engine {
-    class entity {
-    public:
-        virtual void on_update(float delta) {};
-        virtual void init() {};
-    };
-
     template <typename T>
     concept number = std::is_integral_v<T> || std::is_floating_point_v<T>;
 
@@ -58,6 +52,22 @@ export namespace engine {
 
         bool operator!=(const vec2& other) const {
             return this->x != other.x || this->y != other.y;
+        }
+
+        vec2 with_x(T new_x) const {
+            return {new_x, y};
+        }
+
+        vec2 with_y(T new_y) const {
+            return {x, new_y};
+        }
+
+        vec2 with(T new_x, T new_y) const {
+            return {new_x, new_y};
+        }
+
+        vec2 rev() const {
+            return {y, x};
         }
     };
 

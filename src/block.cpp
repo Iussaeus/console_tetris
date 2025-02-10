@@ -93,10 +93,6 @@ namespace engine {
             break;
         }
     }
-
-    void block::on_update(float delta) {}
-    void block::init() {}
-
     // todo: make it real
     void block::remove_tile(const vec2<int> p) {
         local_grid[p.x][p.y] = 0;

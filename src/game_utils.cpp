@@ -12,11 +12,10 @@ import engine;
 
 namespace utils {
     void test_all_block_types(renderer::screen& screen) {
-        for (auto blocks = make_block_buffer(); const auto& block : blocks) {
-            screen.add_block_to_buffer(block);
-            screen.draw();
-            screen.init(colors::black + L"O");
-            std::wcout << std::endl;
+        auto blocks = make_block_buffer();
+
+        for (const auto& block : blocks) {
+            block->print_data(true);
         }
     }
 

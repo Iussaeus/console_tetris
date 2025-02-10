@@ -22,9 +22,9 @@ export namespace colors {
     const renderer::color red = L"\033[31m";
     const renderer::color green = L"\033[32m";
     const renderer::color yellow = L"\033[33m";
-    const renderer::color blue = L"\033[34m";
     const renderer::color magenta = L"\033[35m";
     const renderer::color cyan = L"\033[36m";
+    const renderer::color blue = L"\033[34m";
     const renderer::color white = L"\033[37m";
 
     const renderer::color black_background = L"\033[40m";
@@ -38,5 +38,5 @@ export namespace colors {
 
     const renderer::color reset = L"\033[0m";
 
-    std::array array = {black, red, green, yellow, blue, magenta, cyan, white};
+    std::array array = {black, red, green, yellow, magenta, cyan, white};
 }

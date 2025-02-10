@@ -24,9 +24,35 @@ export namespace engine {
         count
     };
 
-    class block : public entity {
+    std::wostream& operator<<(std::wostream& os, block_type value) {
+        switch (value) {
+        case block_type::nothing: os << L"nothing";
+            break;
+        case block_type::L_block: os << L"L_block";
+            break;
+        case block_type::I_block: os << L"I_block";
+            break;
+        case block_type::O_block: os << L"O_block";
+            break;
+        case block_type::T_block: os << L"T_block";
+            break;
+        case block_type::S_block: os << L"S_block";
+            break;
+        case block_type::Z_block: os << L"Z_block";
+            break;
+        case block_type::J_block: os << L"J_block";
+            break;
+        case block_type::count: os << L"count";
+            break;
+        default: os << L"unknown";
+            break;
+        }
+        return os;
+    }
+
+    class block final {
     public:
-        block(block_type type = block_type::nothing, const std::wstring& color = colors::red);
+        explicit block(block_type type = block_type::nothing, const std::wstring& color = colors::red);
 
         vec2<int> position;
         const block_type type;
@@ -35,12 +61,10 @@ export namespace engine {
         bool is_enabled;
         buffer::buffer<int, 4, 4> local_grid;
         std::array<vec2<int>, 4> tile_offsets;
-        std::function<void(std::shared_ptr<block>& b, float)> update = [&](std::shared_ptr<block>&, float) {};
+        std::function<void(std::shared_ptr<block>& b)> update = nullptr;
+        std::function<void(std::shared_ptr<block>& b)> init = nullptr;
 
     public:
-        void on_update(float delta) override;
-        void init() override;
-
         void remove_tile(vec2<int> p);
         void print_data(bool with_local_grid = true) const;
         void rotate();

@@ -76,8 +76,8 @@ namespace renderer {
     void screen::add_block_to_buffer(const engine::block_ptr& b) {
         for (int i = 0; i < b->local_grid.height(); i++) {
             auto global_pos = b->position + engine::vec2(b->tile_offsets[i]);
-            if ((global_pos.x >= 0 && global_pos.y >= 0) && (global_pos.x < buffer_.height() && global_pos.y <
-                buffer_.width())) {
+            if ((global_pos.x >= 0 && global_pos.y >= 0) && (global_pos.x < buffer_.height() &&
+                global_pos.y < buffer_.width())) {
                 buffer_[global_pos.x][global_pos.y] = b->color + L'X' + colors::reset;
             }
         }

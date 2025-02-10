@@ -1,6 +1,7 @@
 ﻿module;
 
 #include <chrono>
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -12,79 +13,109 @@ import renderer_utils;
 import utils;
 
 namespace engine {
-    engine::engine(): entities_(16) {
+    engine::engine() {
         screen_.clear();
         screen_.init(L"X");
+        blocks_.reserve(16);
+        previous_time_ = std::chrono::high_resolution_clock::now();
     }
 
-    engine::engine(const int size, const int width, const int height) : entities_(size), screen_(width, height) {
+    engine::engine(int frames) {
         screen_.clear();
         screen_.init(L"X");
+        blocks_.reserve(16);
+        interval = 1000 / frames;
+        previous_time_ = std::chrono::high_resolution_clock::now();
+    }
+
+    engine::engine(const int size, const int width, const int height) : screen_(width, height) {
+        screen_.clear();
+        screen_.init(L"X");
+        blocks_.reserve(size);
+        previous_time_ = std::chrono::high_resolution_clock::now();
     }
 
     engine::~engine() {}
 
-    void engine::init() {
-        for (auto& entity : entities_) {
-            entity->init();
-        }
-    }
+    void engine::init() {}
 
     void engine::push_block(block_ptr b) {
-        entities_.push_back(std::move(b));
+        if (b->init) b->init(b);
+        collisions_[b] = {};
+        blocks_.push_back(std::move(b));
     }
 
     bool engine::are_blocks_colliding(const block_ptr& b1, const block_ptr& b2) {
-        const int size = b1->tile_offsets.size();
+        if (b1 == b2) return false;
 
-        for (int i = 0; i < size; i++) {
-            const auto& off1 = b1->tile_offsets[i];
-            const auto& pos1 = b1->position;
+        const auto& pos1 = b1->position;
+        const auto& pos2 = b2->position;
 
-            const auto& off2 = b2->tile_offsets[i];
-            const auto& pos2 = b2->position;
-
-            if (off1 + pos1 == off2 + pos2) return true;
+        for (const auto off1 : b1->tile_offsets) {
+            for (const auto off2 : b2->tile_offsets) {
+                if (pos1.with_x(pos1.x + 1) + off1 == pos2 + off2) return true;
+            }
         }
+
 
         return false;
     }
 
-    void engine::push_entity(entity_ptr e) {
-        entities_.push_back(std::move(e));
+    bool engine::is_block_colliding(const block_ptr& b) {
+        if (blocks_.size() == 1 || collisions_[b].size() == 0) return false;
+
+        if (collisions_[b].size() >= 1) return true;
+
+        return false;
+    }
+
+    void engine::update_collisions_() {
+        if (blocks_.size() == 1) return;
+
+        collisions_.clear();
+
+        for (const auto& b1 : blocks_) {
+            for (const auto& b2 : blocks_) {
+                if (are_blocks_colliding(b1, b2)) collisions_[b1].push_back(b2);
+            }
+        }
+    }
+
+    void engine::print_collisions(const block_ptr& b) {
+        for (const auto& b1 : collisions_[b]) {
+            const auto& pos = b1->position;
+            const auto& to = b1->tile_offsets;
+            debug("c", pos, b1->type, pos + to[0], pos + to[1], pos + to[2], pos + to[3]);
+        }
     }
 
     void engine::remove_block(const std::shared_ptr<block>& b) {
-        for (auto it = entities_.begin(); it != entities_.end(); ++it) {
-            if (b == *it) {
-                entities_.erase(it);
-                return;
-            }
-        }
+        auto it = std::find(blocks_.begin(), blocks_.end(), b);
+        blocks_.erase(it);
     }
 
-    bool engine::update() {
-        // todo: 1. calculate delta
-        const auto delta = calculate_delta();
+    void engine::update() {
+        auto frame_start = std::chrono::high_resolution_clock::now();
 
-        // todo: 2 capture input
         input_.capture_one_input();
 
-        // todo: 3. "entities scripts"
-        for (auto& entity : entities_) {
-            if (auto b = std::dynamic_pointer_cast<block>(entity)) {
-                b->on_update(delta);
-                b->update(b, delta);
+        for (auto& block : blocks_) {
+            update_collisions_();
+            if (block) {
+                if (block->update)
+                    block->update(block);
             }
         }
-        // todo: 4. update screen
+
         render();
 
-        // todo: 5. update ui
+        auto frame_end = std::chrono::high_resolution_clock::now();
 
-        std::this_thread::sleep_until(next_execution_time_);
-
-        return true;
+        std::chrono::duration<float, std::milli> frame_duration = frame_end - frame_start;
+        if (frame_duration.count() < interval) {
+            auto sleep_duration = std::chrono::milliseconds(static_cast<int>(interval - frame_duration.count()));
+            std::this_thread::sleep_for(sleep_duration);
+        }
     }
 
     // todo: render
@@ -92,14 +123,9 @@ namespace engine {
         screen_.clear();
         screen_.init(colors::blue + L"O");
 
-        const auto& blocks = get_blocks();
-        screen_.update_buffer(blocks);
+        screen_.update_buffer(blocks_);
 
         screen_.draw();
-    }
-
-    entity_buffer& engine::entities() {
-        return entities_;
     }
 
     input& engine::input() {
@@ -110,18 +136,11 @@ namespace engine {
         return screen_;
     }
 
-    long engine::calculate_delta() {
-        auto previous_time = next_execution_time_;
-        next_execution_time_ += std::chrono::milliseconds(interval);
-
-        return (next_execution_time_ - previous_time).count();
-    }
-
     void engine::print_data() const {
         std::cout << "entities_: ";
 
-        for (const auto& entity : entities_) {
-            if (const auto b = std::dynamic_pointer_cast<block>(entity)) {
+        for (const auto& b : blocks_) {
+            if (b) {
                 b->print_data();
             }
         }
@@ -129,27 +148,15 @@ namespace engine {
         std::cout << std::endl;
     }
 
-    const block_buffer& engine::get_blocks() const {
-        static block_buffer blocks;
-        blocks.clear();
-        blocks.reserve(entities_.size() / 2);
-
-        for (auto& entity : entities_) {
-            if (const auto b = std::dynamic_pointer_cast<block>(entity)) {
-                blocks.push_back(b);
-            }
-        }
-
-        return blocks;
+    const block_buffer& engine::blocks() const {
+        return blocks_;
     }
 
     /// @return block if found, nullptr if not
     block_ptr engine::get_block_(const size_t id) const {
-        for (const auto& entity : entities_) {
-            const auto ptr = std::dynamic_pointer_cast<block>(entity);
-
-            if (ptr->id == id) {
-                return ptr;
+        for (const auto& b : blocks_) {
+            if (b->id == id) {
+                return b;
             }
         }
         return nullptr;
